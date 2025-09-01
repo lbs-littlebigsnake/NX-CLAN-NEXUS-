@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clã NEXUS ЙЖ* - Little Big Snake</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link href="styles.css" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h2 class="loading-text">Conectando aos servidores...</h2>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#home">
+                <img src="logo.png" alt="NEXUS Logo">
+                NEXUS ЙЖ*
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#members">Membros</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#rankings">Rankings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#stats">Estatísticas</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">CLÃ NEXUS</h1>
+                    <h2 class="hero-subtitle">ЙЖ* - Dominando o Little Big Snake</h2>
+                    <p class="lead mb-4">
+                        O clã mais organizado e competitivo do jogo. 
+                        Monitoramento em tempo real de todos os membros em todos os servidores.
+                    </p>
+                    <div class="d-flex gap-3 mb-5">
+                        <button class="btn btn-primary-glow" onclick="scrollToSection('members')">
+                            <i class="fas fa-users me-2"></i>Ver Membros
+                        </button>
+                        <button class="btn btn-secondary-glow" onclick="scrollToSection('rankings')">
+                            <i class="fas fa-trophy me-2"></i>Rankings
+                        </button>
+                    </div>
+                    
+                    <!-- Stats Preview -->
+                    <div class="stats-preview">
+                        <div class="row g-4">
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="totalMembers">0</div>
+                                    <div class="stat-label">Membros</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="onlineMembers">0</div>
+                                    <div class="stat-label">Online</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-card">
+                                    <div class="stat-number" id="totalScore">0</div>
+                                    <div class="stat-label">Score Total</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-image">
+                        <img src="snake-hero.png" alt="Snake" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Time Period Tabs -->
+    <section class="py-3 bg-dark sticky-top" style="top: 76px; z-index: 100;">
+        <div class="container">
+            <div class="time-tabs">
+                <button class="time-tab active" data-period="last24h">Últimas 24h</button>
+                <button class="time-tab" data-period="last7d">Últimos 7 dias</button>
+                <button class="time-tab" data-period="last30d">Últimos 30 dias</button>
+                <button class="time-tab" data-period="allTime">Todo Período</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- View Tabs -->
+    <section class="py-3 bg-darker">
+        <div class="container">
+            <div class="time-tabs">
+                <button class="view-tab active" data-view="members">
+                    <i class="fas fa-users me-2"></i>Lista de Membros
+                </button>
+                <button class="view-tab" data-view="activity">
+                    <i class="fas fa-gamepad me-2"></i>Mais Ativos
+                </button>
+                <button class="view-tab" data-view="scores">
+                    <i class="fas fa-trophy me-2"></i>Maiores Pontuações
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Members Section -->
+    <section id="members" class="py-5 view-container" data-view="members">
+        <div class="container">
+            <h2 class="text-center mb-5 glow-text">Membros do Clã</h2>
+            
+            <!-- Search -->
+            <div class="row mb-4">
+                <div class="col-md-6 mx-auto">
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="searchMember" 
+                               placeholder="Buscar por nome ou ID...">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Members Grid -->
+            <div id="membersContainer" class="row g-4">
+                <!-- Membros serão inseridos aqui -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Activity Ranking -->
+    <section id="activity" class="py-5 view-container" data-view="activity" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-5 glow-text">Membros Mais Ativos</h2>
+            <div id="activityContainer">
+                <!-- Ranking de atividade será inserido aqui -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Score Ranking -->
+    <section id="scores" class="py-5 view-container" data-view="scores" style="display: none;">
+        <div class="container">
+            <h2 class="text-center mb-5 glow-text">Maiores Pontuações</h2>
+            <div id="scoreContainer">
+                <!-- Ranking de pontuação será inserido aqui -->
+            </div>
+        </div>
+    </section>
+
+        <!-- Live Tracking -->
+    <section id="liveTracking" class="py-5 bg-dark">
+        <div class="container">
+            <h2 class="text-center mb-5 glow-text">
+                <i class="fas fa-satellite-dish me-2"></i>Monitoramento ao Vivo
+            </h2>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card-glow">
+                        <h5 class="mb-4">Atividade Recente</h5>
+                        <div id="activityFeed" class="activity-feed">
+                            <!-- Feed de atividades será inserido aqui -->
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card-glow mb-4">
+                        <h5 class="mb-4">Status dos Servidores</h5>
+                        <div id="serverStatus">
+                            <!-- Status dos servidores será inserido aqui -->
+                        </div>
+                    </div>
+                    <div class="card-glow">
+                        <h5 class="mb-4">Estatísticas Rápidas</h5>
+                        <canvas id="weeklyChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="stats" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 glow-text">Estatísticas do Clã</h2>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card-glow">
+                        <h5 class="mb-4">Atividade por Hora</h5>
+                        <canvas id="hourlyChart" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="stat-card">
+                                <i class="fas fa-chart-line fa-2x mb-3 text-primary"></i>
+                                <div class="stat-number" id="avgScore">0</div>
+                                <div class="stat-label">Média de Score</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="stat-card">
+                                <i class="fas fa-clock fa-2x mb-3 text-success"></i>
+                                <div class="stat-number" id="totalHours">0h</div>
+                                <div class="stat-label">Horas Jogadas</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="stat-card">
+                                <i class="fas fa-percentage fa-2x mb-3 text-warning"></i>
+                                <div class="stat-number" id="activityRate">0%</div>
+                                <div class="stat-label">Taxa de Atividade</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="profile-modal">
+        <div class="profile-content">
+            <button class="profile-close">&times;</button>
+            <div id="profileContent">
+                <!-- Conteúdo do perfil será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-darker text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Clã NEXUS ЙЖ*</h5>
+                    <p class="text-muted">
+                        O clã mais organizado e competitivo do Little Big Snake. 
+                        Junte-se a nós e domine os servidores!
+                    </p>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Links Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#members" class="text-muted">Membros</a></li>
+                        <li><a href="#rankings" class="text-muted">Rankings</a></li>
+                        <li><a href="#stats" class="text-muted">Estatísticas</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="mb-3">Contato</h5>
+                    <p class="text-muted">
+                        Discord: NEXUS#0000<br>
+                        Email: nexus@clan.com
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4 border-secondary">
+            <div class="text-center">
+                <p class="mb-0 text-muted">
+                    &copy; 2024 Clã NEXUS. Desenvolvido com <i class="fas fa-heart text-danger"></i> para a comunidade LBS.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Audio Files -->
+    <audio id="soundClick" src="sounds/click.mp3" preload="auto"></audio>
+    <audio id="soundNewMember" src="sounds/new-member.mp3" preload="auto"></audio>
+    <audio id="soundMemberOnline" src="sounds/member-online.mp3" preload="auto"></audio>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="websocket-manager.js"></script>
+    <script src="clan-manager.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

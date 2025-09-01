@@ -1,0 +1,16 @@
+/
+├── index.html
+├── styles.css
+├── websocket-manager.js
+├── clan-manager.js
+├── ui-manager.js
+├── main.js
+├── sounds/
+│   ├── click.mp3
+│   ├── new-member.mp3
+│   └── member-online.mp3
+├── images/
+│   ├── logo.png
+│   ├── snake-hero.png
+│   └── pattern.png
+└── favicon.png
