@@ -31,6 +31,7 @@ class UIManager {
         this.clanManager.onNewMember = this.handleNewMember.bind(this);
         this.clanManager.onMemberOnline = this.handleMemberOnline.bind(this);
         this.clanManager.onMemberOffline = this.handleMemberOffline.bind(this);
+        this.clanManager.onConnectionStatus = this.handleConnectionStatus.bind(this);
         
         console.log('✅ UI Manager inicializado!');
     }
@@ -48,6 +49,7 @@ class UIManager {
         this.elements.profileModal = document.getElementById('profileModal');
         this.elements.activityFeed = document.getElementById('activityFeed');
         this.elements.serverStatus = document.getElementById('serverStatus');
+        this.elements.connectionMetrics = document.getElementById('connectionMetrics');
         
         // Tabs
         this.elements.timeTabs = document.querySelectorAll('.time-tab');
@@ -116,7 +118,7 @@ class UIManager {
                     datasets: [{
                         label: 'Partidas',
                         data: new Array(24).fill(0),
-                        backgroundColor: 'rgba(0, 255, 136, 0.5)',                         backgroundColor: 'rgba(0, 255, 136, 0.5)',
+                        backgroundColor: 'rgba(0, 255, 136, 0.5)',
                         borderColor: 'rgba(0, 255, 136, 1)',
                         borderWidth: 2
                     }]
@@ -219,6 +221,12 @@ class UIManager {
         
         // Atualiza status dos servidores
         this.updateServerStatus(data.serverStatus);
+        
+        // Atualiza métricas de conexão
+        this.updateConnectionMetrics(data.connectionMetrics);
+        
+        // Atualiza gráficos
+        this.updateCharts(data);
     }
 
     updateStats(stats) {
@@ -226,6 +234,22 @@ class UIManager {
         this.animateNumber(this.elements.totalMembers, stats.totalMembers);
         this.animateNumber(this.elements.onlineMembers, stats.onlineMembers);
         this.animateNumber(this.elements.totalScore, stats.totalScore, true);
+        
+        // Atualiza outros elementos de estatísticas
+        const avgScoreElement = document.getElementById('avgScore');
+        if (avgScoreElement) {
+            this.animateNumber(avgScoreElement, stats.avgScore, true);
+        }
+        
+        const totalHoursElement = document.getElementById('totalHours');
+        if (totalHoursElement) {
+            totalHoursElement.textContent = this.formatTime(stats.totalPlayTime);
+        }
+        
+        const activityRateElement = document.getElementById('activityRate');
+        if (activityRateElement) {
+            activityRateElement.textContent = stats.activityRate + '%';
+        }
     }
 
     animateNumber(element, target, format = false) {
@@ -242,7 +266,7 @@ class UIManager {
             const current = Math.floor(start + (target - start) * this.easeOutQuart(progress));
             
             if (format) {
-                element.textContent = this.clanManager.wsManager.formatNumber(current);
+                element.textContent = this.formatNumber(current);
             } else {
                 element.textContent = current;
             }
@@ -560,7 +584,7 @@ class UIManager {
         });
         
         // Mostra/esconde containers
-                document.querySelectorAll('.view-container').forEach(container => {
+        document.querySelectorAll('.view-container').forEach(container => {
             container.style.display = container.dataset.view === view ? 'block' : 'none';
         });
         
@@ -591,11 +615,65 @@ class UIManager {
                     <span class="server-status-indicator ${server.connected ? 'connected' : 'disconnected'}"></span>
                     ${server.name}
                 </span>
-                <span class="text-muted">${server.playersCount} jogadores</span>
+                <div class="server-details">
+                    <span class="text-muted">${server.playersCount} jogadores</span>
+                    <small class="text-muted">${server.healthy ? 'Saudável' : 'Instável'}</small>
+                </div>
             </div>
         `).join('');
         
         this.elements.serverStatus.innerHTML = html;
+    }
+
+    updateConnectionMetrics(metrics) {
+        if (!this.elements.connectionMetrics) return;
+                
+        const html = `
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <span class="metric-value">${metrics.activeConnections}</span>
+                    <span class="metric-label">Ativas</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">${metrics.totalConnections}</span>
+                    <span class="metric-label">Total</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">${metrics.failedConnections}</span>
+                    <span class="metric-label">Falhas</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-value">${metrics.membersDetected}</span>
+                    <span class="metric-label">Membros</span>
+                </div>
+            </div>
+        `;
+        
+        this.elements.connectionMetrics.innerHTML = html;
+    }
+
+    updateCharts(data) {
+        // Atualiza gráfico de atividade por hora
+        if (this.charts.hourly && data.hourlyActivity) {
+            this.charts.hourly.data.datasets[0].data = data.hourlyActivity;
+            this.charts.hourly.update('none');
+        }
+        
+        // Atualiza gráfico semanal
+        if (this.charts.weekly && data.weeklyActivity) {
+            this.charts.weekly.data.datasets[0].data = data.weeklyActivity;
+            this.charts.weekly.update('none');
+        }
+    }
+
+    handleConnectionStatus(connectionKey, status) {
+        console.log(`🔗 UI: ${connectionKey} - ${status}`);
+        
+        // Atualiza indicador visual se necessário
+        const indicator = document.querySelector(`[data-connection="${connectionKey}"]`);
+        if (indicator) {
+            indicator.className = `server-status-indicator ${status === 'connected' ? 'connected' : 'disconnected'}`;
+        }
     }
 
     handleNewMember(member) {
@@ -716,6 +794,24 @@ class UIManager {
         div.textContent = text;
         return div.innerHTML;
     }
+
+    formatNumber(num) {
+        if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+        if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+        if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+        if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+        return num.toString();
+    }
+
+    formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        
+        if (hours > 0) {
+            return `${hours}h ${minutes}min`;
+        }
+        return `${minutes}min`;
+    }
 }
 
 // Adiciona estilos de notificação
@@ -758,7 +854,41 @@ const notificationStyles = `
     transform: translateX(100%);
     transition: all 0.3s ease;
 }
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.metric-value {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.metric-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+}
+
+.server-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+}
 </style>
 `;
 
-document.head.insertAdjacentHTML('beforeend', notificationStyles);
+document.head.insertAdjacentHTML('beforeend', notificationStyles);            
