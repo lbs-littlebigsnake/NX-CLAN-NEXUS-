@@ -9,8 +9,8 @@ class ClanManager {
         this.config = {
             clanName: 'NEXUS',
             clanTags: ['ЙЖ*', 'ЙЖ$', 'ЙEЖЦ$'],
-            updateInterval: 3000,
-            saveInterval: 15000
+            updateInterval: 5000,
+            saveInterval: 30000
         };
         
         // Callbacks para UI
@@ -18,7 +18,6 @@ class ClanManager {
         this.onNewMember = null;
         this.onMemberOnline = null;
         this.onMemberOffline = null;
-        this.onConnectionStatus = null;
     }
 
     async initialize() {
@@ -31,7 +30,6 @@ class ClanManager {
         this.wsManager.onMemberDetected = this.handleNewMember.bind(this);
         this.wsManager.onMemberUpdate = this.handleMemberUpdate.bind(this);
         this.wsManager.onServerUpdate = this.handleServerUpdate.bind(this);
-        this.wsManager.onConnectionStatusChange = this.handleConnectionStatusChange.bind(this);
         
         // Inicializa conexões WebSocket
         await this.wsManager.initialize();
@@ -42,14 +40,6 @@ class ClanManager {
         
         this.initialized = true;
         console.log('✅ Clan Manager inicializado!');
-    }
-
-    handleConnectionStatusChange(connectionKey, status) {
-        console.log(`🔗 ${connectionKey}: ${status}`);
-        
-        if (this.onConnectionStatus) {
-            this.onConnectionStatus(connectionKey, status);
-        }
     }
 
     handleNewMember(memberData) {
@@ -68,14 +58,14 @@ class ClanManager {
     }
 
     handleMemberUpdate(memberData) {
+        // Verifica mudança de status online
         const previousData = this.storage.getMember(memberData.id);
         
-        // Verifica mudança de status online
-        if (previousData) {
-            if (!previousData.isOnline && memberData.isOnline && this.onMemberOnline) {
+        if (previousData && previousData.isOnline !== memberData.isOnline) {
+            if (memberData.isOnline && this.onMemberOnline) {
                 this.onMemberOnline(memberData);
                 this.playSound('memberOnline');
-            } else if (previousData.isOnline && !memberData.isOnline && this.onMemberOffline) {
+            } else if (!memberData.isOnline && this.onMemberOffline) {
                 this.onMemberOffline(memberData);
             }
         }
@@ -84,8 +74,9 @@ class ClanManager {
         this.storage.updateMember(memberData);
     }
 
-    handleServerUpdate(serverName, platform, players, clanMembersFound) {
-        this.storage.updateServerStats(serverName, platform, players, clanMembersFound);
+    handleServerUpdate(serverName, platform, players) {
+        // Pode ser usado para estatísticas de servidor
+        this.storage.updateServerStats(serverName, platform, players);
     }
 
     startUpdateLoop() {
@@ -110,8 +101,7 @@ class ClanManager {
             stats: this.wsManager.getClanStats(),
             activityMembers: this.getTopActiveMembers(),
             scoreMembers: this.getTopScoreMembers(),
-            serverStatus: this.getServerStatus(),
-            connectionMetrics: this.wsManager.getMetrics()
+            serverStatus: this.getServerStatus()
         };
     }
 
@@ -172,7 +162,15 @@ class ClanManager {
 
     // Obtém status dos servidores
     getServerStatus() {
-        return this.wsManager.getConnectionStatus();
+        const status = [];
+        this.wsManager.connections.forEach((connection, key) => {
+            status.push({
+                name: key,
+                connected: connection.socket && connection.socket.readyState === 1,
+                playersCount: connection.topplayers.length
+            });
+        });
+        return status;
     }
 
     // Toca sons do sistema
@@ -252,13 +250,12 @@ class ClanStorage {
         return this.members.get(memberId);
     }
 
-    updateServerStats(serverName, platform, players, clanMembersFound = 0) {
+    updateServerStats(serverName, platform, players) {
         const key = `${serverName}-${platform}`;
         this.serverStats.set(key, {
             lastUpdate: Date.now(),
             playerCount: players.length,
-            topScore: players[0]?.mass || 0,
-            clanMembers: clanMembersFound
+            topScore: players[0]?.mass || 0
         });
     }
 }
